@@ -1,0 +1,5 @@
+<%= render "./nav/group", group: group do %>
+  <% group.get_examples.each do |example| %>
+    <%= render "./nav/item", item: example %>
+  <% end %>
+<% end %>

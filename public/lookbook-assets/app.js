@@ -7548,9 +7548,9 @@ Expression: "${expression}"
   }
   var split_grid_default = index;
 
-  // app/assets/lookbook/js/split.js
+  // app/assets/lookbook/js/utils/split.js
   function split_default(props) {
-    const app = Alpine.store("app");
+    const page2 = Alpine.store("page");
     return {
       init() {
         split_grid_default({
@@ -7561,23 +7561,68 @@ Expression: "${expression}"
           writeStyle() {
           },
           onDrag(dir, track, style) {
-            splits = style.split(" ").map((num) => parseInt(num));
+            const splits = style.split(" ").map((num) => parseInt(num));
             props.onDrag(splits);
           },
           onDragStart() {
-            app.reflowing = true;
+            page2.reflowing = true;
           },
           onDragEnd() {
-            app.reflowing = false;
+            page2.reflowing = false;
           }
         });
       }
     };
   }
 
-  // app/assets/lookbook/js/preview.js
+  // app/assets/lookbook/js/page.js
+  function page() {
+    const page2 = Alpine.store("page");
+    return {
+      splitProps: {
+        minSize: 200,
+        onDrag(splits) {
+          this.$store.nav.width = Math.min(splits[0], 500);
+        }
+      },
+      fetchHTML() {
+        return __async(this, null, function* () {
+          const response = yield fetch(window.document.location);
+          if (!response.ok)
+            return window.location.reload();
+          const html = yield response.text();
+          page2.doc = new DOMParser().parseFromString(html, "text/html");
+          return page2.doc;
+        });
+      },
+      updateTitle() {
+        document.title = page2.doc.title;
+      },
+      render() {
+        this.$el.innerHTML = page2.doc.getElementById(this.$el.id).innerHTML;
+      }
+    };
+  }
+
+  // app/assets/lookbook/js/workbench.js
+  function workbench() {
+    const inspector2 = Alpine.store("inspector");
+    return {
+      previewViewportHeight: 0,
+      previewViewportWidth: 0,
+      splitProps: {
+        direction: "vertical",
+        minSize: 200,
+        onDrag(splits) {
+          inspector2.height = splits[2];
+        }
+      }
+    };
+  }
+
+  // app/assets/lookbook/js/workbench/preview.js
   function preview() {
-    const app = Alpine.store("app");
+    const app = Alpine.store("page");
     const preview2 = Alpine.store("preview");
     return {
       init() {
@@ -7599,27 +7644,108 @@ Expression: "${expression}"
         window.addEventListener("pointermove", this.onResize);
         window.addEventListener("pointerup", this.onResizeEnd);
       },
-      onResizeEnd(e) {
+      onResizeEnd() {
         window.removeEventListener("pointermove", this.onResize);
         window.removeEventListener("pointerup", this.onResizeEnd);
         app.reflowing = false;
       },
-      handle: {
-        ["@pointerdown"]: "onResizeStart",
-        ["@dblclick"]() {
-          if (preview2.width === "100%" && preview2.lastWidth) {
-            preview2.width = preview2.lastWidth;
-          } else {
-            preview2.lastWidth = preview2.width;
-            preview2.width = "100%";
-          }
+      toggleFullWidth() {
+        if (preview2.width === "100%" && preview2.lastWidth) {
+          preview2.width = preview2.lastWidth;
+        } else {
+          preview2.lastWidth = preview2.width;
+          preview2.width = "100%";
         }
       }
     };
   }
 
-  // app/assets/lookbook/js/size_observer.js
-  function size_observer_default() {
+  // app/assets/lookbook/js/workbench/inspector.js
+  function inspector() {
+    const inspector2 = Alpine.store("inspector");
+    return {
+      switchTo(id) {
+        inspector2.active = id;
+      },
+      active(id) {
+        return inspector2.active === id;
+      }
+    };
+  }
+
+  // app/assets/lookbook/js/nav.js
+  function nav() {
+    const nav2 = Alpine.store("nav");
+    return {
+      setScrollPosition() {
+        setTimeout(() => {
+          this.$el.scrollTop = nav2.scrollTop;
+        }, 30);
+      },
+      saveScrollPosition($event) {
+        nav2.scrollTop = $event.currentTarget.scrollTop;
+      },
+      clearFilter() {
+        nav2.filter = "";
+      }
+    };
+  }
+
+  // app/assets/lookbook/js/nav/item.js
+  function navItem() {
+    const nav2 = Alpine.store("nav");
+    return {
+      path: "",
+      hidden: false,
+      get id() {
+        return this.$el.id;
+      },
+      get active() {
+        return window.location.pathname === this.path;
+      },
+      updateHidden(matchString) {
+        const cleanFilter = nav2.filter.replace(/s/g, "").toLowerCase();
+        if (cleanFilter === "") {
+          this.hidden = false;
+        } else {
+          this.hidden = !matchString.includes(cleanFilter);
+        }
+        this.$dispatch("nav:filtered");
+      },
+      navigate() {
+        history.pushState({}, null, this.path);
+        this.$dispatch("popstate");
+      }
+    };
+  }
+
+  // app/assets/lookbook/js/nav/group.js
+  function navGroup() {
+    const nav2 = Alpine.store("nav");
+    return {
+      visibleChildren: [],
+      get id() {
+        return this.$el.id;
+      },
+      get open() {
+        return !!nav2.open[this.id];
+      },
+      get hidden() {
+        return this.visibleChildren.length === 0;
+      },
+      toggle() {
+        nav2.open[this.id] = !nav2.open[this.id];
+      },
+      updateHidden() {
+        setTimeout(() => {
+          this.visibleChildren = this.$refs.items.querySelectorAll(":scope > li:not(.hidden)");
+        }, 0);
+      }
+    };
+  }
+
+  // app/assets/lookbook/js/utils/size_observer.js
+  function sizeObserver() {
     return {
       observedWidth: 0,
       observedHeight: 0,
@@ -7636,7 +7762,7 @@ Expression: "${expression}"
     };
   }
 
-  // app/assets/lookbook/js/reloader.js
+  // app/assets/lookbook/js/utils/reloader.js
   var import_actioncable = __toModule(require_action_cable());
   var import_debounce = __toModule(require_debounce());
   function reloader_default(endpoint) {
@@ -7663,30 +7789,53 @@ Expression: "${expression}"
     };
   }
 
+  // app/assets/lookbook/js/utils/clipboard.js
+  function clipboard() {
+    return {
+      content: null,
+      done: false,
+      save() {
+        this.$clipboard(this.content);
+        this.done = true;
+        setTimeout(() => {
+          this.done = false;
+        }, 1e3);
+      }
+    };
+  }
+
   // app/assets/lookbook/js/app.js
+  window.Alpine = module_default;
   module_default.plugin(module_default2);
   module_default.plugin(module_default3);
   module_default.plugin(src_default4);
-  module_default.data("preview", preview);
-  module_default.data("sizeObserver", size_observer_default);
-  module_default.data("split", split_default);
-  module_default.store("app", { reflowing: false });
+  module_default.store("page", {
+    reflowing: false,
+    doc: window.document
+  });
   module_default.persistedStore("nav", {
     width: 280,
     filter: "",
     open: {},
-    scrollTop: 0,
-    shouldDisplay(previewName) {
-      const cleanFilter = this.filter.replace(/\s/g, "");
-      return cleanFilter === "" || previewName.includes(cleanFilter.toLowerCase());
-    }
+    scrollTop: 0
   });
-  module_default.persistedStore("preview", {});
   module_default.persistedStore("inspector", {
     height: 200,
     active: "source"
   });
-  window.Alpine = module_default;
+  module_default.persistedStore("preview", {
+    width: "100%"
+  });
+  module_default.data("page", page);
+  module_default.data("nav", nav);
+  module_default.data("navGroup", navGroup);
+  module_default.data("navItem", navItem);
+  module_default.data("workbench", workbench);
+  module_default.data("preview", preview);
+  module_default.data("inspector", inspector);
+  module_default.data("clipboard", clipboard);
+  module_default.data("sizeObserver", sizeObserver);
+  module_default.data("split", split_default);
   reloader_default(window.SOCKET_PATH).start();
   module_default.start();
 })();
