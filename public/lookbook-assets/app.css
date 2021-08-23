@@ -2306,37 +2306,6 @@ pre[class*="language-"] {
   border-right-color: #6366f1;
 }
 
-@layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-
-  @media screen and (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-  }
-
-  [x-cloak] {
-    display: none !important;
-  }
-
-  pre[class*="language-"] {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .feather {
-    width: 24px;
-    height: 24px;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    fill: none;
-  }
-}
-
 .hover\:border-gray-300:hover {
   --tw-border-opacity: 1;
   border-color: rgba(209, 213, 219, var(--tw-border-opacity));

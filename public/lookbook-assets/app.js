@@ -7705,7 +7705,7 @@ Expression: "${expression}"
         return window.location.pathname === this.path;
       },
       updateHidden(matchString) {
-        const cleanFilter = nav2.filter.replace(/s/g, "").toLowerCase();
+        const cleanFilter = nav2.filter.replace(/\s/g, "").toLowerCase();
         if (cleanFilter === "") {
           this.hidden = false;
         } else {

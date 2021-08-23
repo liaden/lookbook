@@ -10,7 +10,7 @@ export default function navItem() {
       return window.location.pathname === this.path;
     },
     updateHidden(matchString) {
-      const cleanFilter = nav.filter.replace(/s/g, "").toLowerCase();
+      const cleanFilter = nav.filter.replace(/\s/g, "").toLowerCase();
       if (cleanFilter === "") {
         this.hidden = false;
       } else {
