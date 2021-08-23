@@ -1,10 +1,11 @@
 export default function page() {
   const page = Alpine.store("page");
+  const nav = Alpine.store("nav");
   return {
     splitProps: {
       minSize: 200,
       onDrag(splits) {
-        this.$store.nav.width = Math.min(splits[0], 500);
+        nav.width = Math.min(splits[0], 500);
       },
     },
     async fetchHTML() {

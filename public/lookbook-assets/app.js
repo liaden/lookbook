@@ -7578,11 +7578,12 @@ Expression: "${expression}"
   // app/assets/lookbook/js/page.js
   function page() {
     const page2 = Alpine.store("page");
+    const nav2 = Alpine.store("nav");
     return {
       splitProps: {
         minSize: 200,
         onDrag(splits) {
-          this.$store.nav.width = Math.min(splits[0], 500);
+          nav2.width = Math.min(splits[0], 500);
         }
       },
       fetchHTML() {
