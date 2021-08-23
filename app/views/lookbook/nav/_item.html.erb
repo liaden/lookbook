@@ -1,9 +1,10 @@
 <li id="<%= item.id %>" x-data="navItem()" x-effect="updateHidden('<%= item.filter_match_string %>')" :class="{hidden}">
   <a href="<%= show_path item.path %>"
-    x-init="path = $el.getAttribute('href')"
+    x-init="path = $el.getAttribute('href'); setActive();"
     class="pr-3 py-[3px] flex items-center w-full group transition hover:bg-gray-200 hover:bg-opacity-50"
     :class="{'!bg-indigo-100': active}"
     style="<%= nav_padding_style(item.hierarchy_depth + 1) %>"
+    @popstate.window="setActive"
     @click.stop.prevent="navigate"
   >
     <div :class="{'text-gray-900': active, 'text-indigo-500': !active}">

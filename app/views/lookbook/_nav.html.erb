@@ -1,4 +1,4 @@
-<div id="nav" class="h-full" x-data="nav">
+<div id="nav" class="h-full" x-data="nav" @document:updated.document="updateMenu">
   <div class="bg-white h-10 border-b border-gray-300 flex items-center relative">
     <input
       type="text"
@@ -14,25 +14,26 @@
     </button>
   </div>
 
-  <div class="relative overflow-auto w-full" style="height: calc(100% - 40px)" @scroll.passive="saveScrollPosition" x-init="setScrollPosition">
-    <nav id="menu" class="select-none" x-data="navGroup" @nav:filtered.stop="updateHidden">
-      <% if @nav.items.any? %>
-        <ul x-ref="items">
-          <% @nav.items.each do |group| %>
-            <%= render "./nav/#{group.type.to_s}", group: group %>
-          <% end %>
-        </ul>
-      
-        <div class="p-4 text-center" x-show="hidden" x-cloak>
-          <em class="text-gray-400">No matching previews found.</em>
-        </div>
-      <% else %>
-        <div class="p-4">
-          <h4 class="text-gray-500 mb-1">No previews found.</h4>
-          <p class="text-gray-400 text-xs">Have you set your <a class="underline" href="https://viewcomponent.org/api.html#preview_paths">preview paths</a> config correctly?</p>
-        </div>
-      <% end %>
-      
-    </nav>
-  </div> 
+  <div class="relative overflow-auto w-full" style="height: calc(100% - 40px)">
+    <div x-ref="menu">
+      <nav id="menu" class="select-none" x-data="navGroup" @nav:filtered.stop="updateHidden">
+        <% if @nav.items.any? %>
+          <ul x-ref="items">
+            <% @nav.items.each do |group| %>
+              <%= render "./nav/#{group.type.to_s}", group: group %>
+            <% end %>
+          </ul>
+        
+          <div class="p-4 text-center" x-show="hidden" x-cloak>
+            <em class="text-gray-400">No matching previews found.</em>
+          </div>
+        <% else %>
+          <div class="p-4">
+            <h4 class="text-gray-500 mb-1">No previews found.</h4>
+            <p class="text-gray-400 text-xs">Have you set your <a class="underline" href="https://viewcomponent.org/api.html#preview_paths">preview paths</a> config correctly?</p>
+          </div>
+        <% end %>    
+      </nav>
+    </div>
+  </div>   
 </div>

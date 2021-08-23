@@ -3,11 +3,9 @@ export default function navItem() {
   return {
     path: "",
     hidden: false,
+    active: false,
     get id() {
       return this.$el.id;
-    },
-    get active() {
-      return window.location.pathname === this.path;
     },
     updateHidden(matchString) {
       const cleanFilter = nav.filter.replace(/\s/g, "").toLowerCase();
@@ -21,6 +19,9 @@ export default function navItem() {
     navigate() {
       history.pushState({}, null, this.path);
       this.$dispatch("popstate");
+    },
+    setActive() {
+      this.active = window.location.pathname === this.path;
     },
   };
 }
