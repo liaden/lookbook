@@ -8190,10 +8190,16 @@ Expression: "${expression}"
 
   // app/assets/lookbook/js/nav.js
   function nav() {
-    const nav2 = Alpine.store("nav");
     return {
       clearFilter() {
-        nav2.filter = "";
+        this.$store.nav.filter = "";
+      },
+      init() {
+        this.$watch("$store.nav.filter", (value) => {
+          const nav2 = this.$store.nav;
+          nav2.filterText = value.replace(/\s/g, "").toLowerCase();
+          nav2.filtered = nav2.filterText.length > 0;
+        });
       },
       updateMenu(event) {
         const menu = document.getElementById("menu");
@@ -8207,21 +8213,22 @@ Expression: "${expression}"
   }
 
   // app/assets/lookbook/js/nav/item.js
-  function navItem() {
-    const nav2 = Alpine.store("nav");
+  function navItem({ matchers }) {
     return {
       path: "",
       hidden: false,
       active: false,
+      matchers: matchers || [],
       get id() {
         return this.$el.id;
       },
-      updateHidden(matchString) {
-        const cleanFilter = nav2.filter.replace(/\s/g, "").toLowerCase();
-        if (cleanFilter === "") {
-          this.hidden = false;
+      updateHidden() {
+        const nav2 = this.$store.nav;
+        if (nav2.filtered) {
+          const matched = this.matchers.filter((m) => m.includes(nav2.filterText));
+          this.hidden = !matched.length;
         } else {
-          this.hidden = !matchString.includes(cleanFilter);
+          this.hidden = false;
         }
         this.$dispatch("nav:filtered");
       },
@@ -8237,20 +8244,23 @@ Expression: "${expression}"
 
   // app/assets/lookbook/js/nav/group.js
   function navGroup() {
-    const nav2 = Alpine.store("nav");
     return {
       visibleChildren: [],
       get id() {
         return this.$el.id;
       },
       get open() {
-        return !!nav2.open[this.id];
+        const nav2 = this.$store.nav;
+        if (nav2.filtered && nav2.open[this.id] === void 0) {
+          return true;
+        }
+        return !!this.$store.nav.open[this.id];
       },
       get hidden() {
         return this.visibleChildren.length === 0;
       },
       toggle() {
-        nav2.open[this.id] = !nav2.open[this.id];
+        this.$store.nav.open[this.id] = !this.$store.nav.open[this.id];
       },
       updateHidden() {
         setTimeout(() => {

@@ -1,4 +1,4 @@
-<li id="<%= item.id %>" x-data="navItem()" x-effect="updateHidden('<%= item.filter_match_string %>')" :class="{hidden}">
+<li id="<%= item.id %>" x-data="navItem({matchers: <%= item.matchers.to_json %>})" x-effect="updateHidden" :class="{hidden}">
   <a href="<%= show_path item.path %>"
     x-init="path = $el.getAttribute('href'); setActive();"
     class="pr-3 py-[3px] flex items-center w-full group transition hover:bg-gray-200 hover:bg-opacity-50"

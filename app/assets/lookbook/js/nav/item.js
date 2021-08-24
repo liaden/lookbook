@@ -1,18 +1,19 @@
-export default function navItem() {
-  const nav = Alpine.store("nav");
+export default function navItem({ matchers }) {
   return {
     path: "",
     hidden: false,
     active: false,
+    matchers: matchers || [],
     get id() {
       return this.$el.id;
     },
-    updateHidden(matchString) {
-      const cleanFilter = nav.filter.replace(/\s/g, "").toLowerCase();
-      if (cleanFilter === "") {
-        this.hidden = false;
+    updateHidden() {
+      const nav = this.$store.nav;
+      if (nav.filtered) {
+        const matched = this.matchers.filter((m) => m.includes(nav.filterText));
+        this.hidden = !matched.length;
       } else {
-        this.hidden = !matchString.includes(cleanFilter);
+        this.hidden = false;
       }
       this.$dispatch("nav:filtered");
     },

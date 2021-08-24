@@ -1,4 +1,4 @@
-<div id="nav" class="h-full" x-data="nav" @document:updated.document="updateMenu">
+<div id="nav" class="h-full" x-data="nav($store.nav)" @document:updated.document="updateMenu">
   <div class="bg-white h-10 border-b border-gray-300 flex items-center relative">
     <input
       type="text"
@@ -14,7 +14,7 @@
     </button>
   </div>
 
-  <div class="relative overflow-auto w-full" style="height: calc(100% - 40px)">
+  <div class="relative overflow-y-scroll w-full" style="height: calc(100% - 40px)">
     <div x-ref="menu">
       <nav id="menu" class="select-none" x-data="navGroup" @nav:filtered.stop="updateHidden">
         <% if @nav.items.any? %>

@@ -1,10 +1,16 @@
 import morph from "./utils/morph";
 
 export default function nav() {
-  const nav = Alpine.store("nav");
   return {
     clearFilter() {
-      nav.filter = "";
+      this.$store.nav.filter = "";
+    },
+    init() {
+      this.$watch("$store.nav.filter", (value) => {
+        const nav = this.$store.nav;
+        nav.filterText = value.replace(/\s/g, "").toLowerCase();
+        nav.filtered = nav.filterText.length > 0;
+      });
     },
     updateMenu(event) {
       const menu = document.getElementById("menu");
