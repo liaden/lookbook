@@ -1,4 +1,4 @@
-<li id="<%= group.id %>" x-data="navGroup" @nav:filtered="updateHidden" <% if group.hierarchy_depth == 1 %> class="py-1 border-b border-gray-300 cursor-pointer"<% end %> :class="{hidden}">
+<li id="<%= group.id %>" x-data="navGroup" x-effect="$store.nav.open[$el.id] = open" <% if group.hierarchy_depth == 1 %> class="py-1 border-b border-gray-300 cursor-pointer"<% end %> :class="{hidden}" x-cloak>
   <div @click="toggle" style="<%= nav_padding_style(group.hierarchy_depth) %>">
     <div class="flex items-center cursor-pointer pr-3 py-[4px]">
       <svg class="feather w-3 h-3 mr-1 text-gray-500 flex-none">
@@ -13,7 +13,7 @@
       </div>
     </div>
   </div>
-  <ul x-show="open" x-cloak x-ref="items">
+  <div x-ref="items" x-show="open">
     <%= yield %>
-  </ul>
+  </div>
 </li>

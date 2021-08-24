@@ -1,28 +1,33 @@
 export default function navGroup() {
   return {
-    visibleChildren: [],
-    get id() {
-      return this.$el.id;
+    id: null,
+    hidden: true,
+    open: true,
+    children: [],
+    init() {
+      this.id = this.$el.id;
+      this.open = !!this.$store.nav.open[this.id];
     },
-    get open() {
-      const nav = this.$store.nav;
-      if (nav.filtered && nav.open[this.id] === undefined) {
-        return true;
+    getChildren() {
+      if (this.$refs.items) {
+        return Array.from(
+          this.$refs.items.querySelectorAll(":scope > ul > li")
+        );
       }
-      return !!this.$store.nav.open[this.id];
+      return [];
     },
-    get hidden() {
-      return this.visibleChildren.length === 0;
+    filter(text) {
+      this.hidden = true;
+      this.getChildren().forEach((child) => {
+        const data = child._x_dataStack[0];
+        data.filter(text);
+        if (!data.hidden) {
+          this.hidden = false;
+        }
+      });
     },
     toggle() {
-      this.$store.nav.open[this.id] = !this.$store.nav.open[this.id];
-    },
-    updateHidden() {
-      setTimeout(() => {
-        this.visibleChildren = this.$refs.items.querySelectorAll(
-          ":scope > li:not(.hidden)"
-        );
-      }, 0);
+      this.open = !this.open;
     },
   };
 }

@@ -7605,12 +7605,12 @@ Expression: "${expression}"
   // app/assets/lookbook/js/page.js
   function page() {
     const page2 = Alpine.store("page");
-    const nav2 = Alpine.store("nav");
+    const nav = Alpine.store("nav");
     return {
       splitProps: {
         minSize: 200,
         onDrag(splits) {
-          nav2.width = Math.min(splits[0], 500);
+          nav.width = Math.min(splits[0], 500);
         }
       },
       fetchHTML() {
@@ -8189,16 +8189,16 @@ Expression: "${expression}"
   }
 
   // app/assets/lookbook/js/nav.js
-  function nav() {
+  function nav_default() {
     return {
       clearFilter() {
         this.$store.nav.filter = "";
       },
       init() {
         this.$watch("$store.nav.filter", (value) => {
-          const nav2 = this.$store.nav;
-          nav2.filterText = value.replace(/\s/g, "").toLowerCase();
-          nav2.filtered = nav2.filterText.length > 0;
+          const nav = this.$store.nav;
+          nav.filterText = value.replace(/\s/g, "").toLowerCase();
+          nav.filtered = nav.filterText.length > 0;
         });
       },
       updateMenu(event) {
@@ -8207,37 +8207,40 @@ Expression: "${expression}"
         morph_default(menu, event.detail.doc.querySelector("#menu"));
         Promise.resolve().then(() => {
           this.$refs.menu.style.height = "auto";
+          this.$dispatch("menu:updated");
         });
+      },
+      navigate($event) {
+        history.pushState({}, null, $event.currentTarget.href);
+        this.$dispatch("popstate");
       }
     };
   }
 
-  // app/assets/lookbook/js/nav/item.js
-  function navItem({ matchers }) {
+  // app/assets/lookbook/js/nav/preview.js
+  function navPreview() {
     return {
-      path: "",
-      hidden: false,
+      examples: []
+    };
+  }
+
+  // app/assets/lookbook/js/nav/example.js
+  function navExample() {
+    return {
+      path: null,
+      matchers: [],
       active: false,
-      matchers: matchers || [],
-      get id() {
-        return this.$el.id;
+      hidden: false,
+      init() {
+        this.root = this.$el;
       },
-      updateHidden() {
-        const nav2 = this.$store.nav;
-        if (nav2.filtered) {
-          const matched = this.matchers.filter((m) => m.includes(nav2.filterText));
-          this.hidden = !matched.length;
-        } else {
+      filter(text) {
+        if (text === "") {
           this.hidden = false;
+        } else {
+          const matched = this.matchers.filter((m) => m.includes(text));
+          this.hidden = !matched.length;
         }
-        this.$dispatch("nav:filtered");
-      },
-      navigate() {
-        history.pushState({}, null, this.path);
-        this.$dispatch("popstate");
-      },
-      setActive() {
-        this.active = window.location.pathname === this.path;
       }
     };
   }
@@ -8245,27 +8248,32 @@ Expression: "${expression}"
   // app/assets/lookbook/js/nav/group.js
   function navGroup() {
     return {
-      visibleChildren: [],
-      get id() {
-        return this.$el.id;
+      id: null,
+      hidden: true,
+      open: true,
+      children: [],
+      init() {
+        this.id = this.$el.id;
+        this.open = !!this.$store.nav.open[this.id];
       },
-      get open() {
-        const nav2 = this.$store.nav;
-        if (nav2.filtered && nav2.open[this.id] === void 0) {
-          return true;
+      getChildren() {
+        if (this.$refs.items) {
+          return Array.from(this.$refs.items.querySelectorAll(":scope > ul > li"));
         }
-        return !!this.$store.nav.open[this.id];
+        return [];
       },
-      get hidden() {
-        return this.visibleChildren.length === 0;
+      filter(text) {
+        this.hidden = true;
+        this.getChildren().forEach((child) => {
+          const data2 = child._x_dataStack[0];
+          data2.filter(text);
+          if (!data2.hidden) {
+            this.hidden = false;
+          }
+        });
       },
       toggle() {
-        this.$store.nav.open[this.id] = !this.$store.nav.open[this.id];
-      },
-      updateHidden() {
-        setTimeout(() => {
-          this.visibleChildren = this.$refs.items.querySelectorAll(":scope > li:not(.hidden)");
-        }, 0);
+        this.open = !this.open;
       }
     };
   }
@@ -8353,9 +8361,10 @@ Expression: "${expression}"
     width: "100%"
   });
   module_default.data("page", page);
-  module_default.data("nav", nav);
+  module_default.data("nav", nav_default);
   module_default.data("navGroup", navGroup);
-  module_default.data("navItem", navItem);
+  module_default.data("navPreview", navPreview);
+  module_default.data("navExample", navExample);
   module_default.data("workbench", workbench);
   module_default.data("preview", preview);
   module_default.data("inspector", inspector);

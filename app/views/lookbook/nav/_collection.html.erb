@@ -1,5 +1,7 @@
 <%= render "./nav/group", group: group do %>
-  <% group.items.each do |item| %>
-    <%= render "./nav/#{item.type.to_s}", group: item %>
-  <% end %> 
+  <ul>
+    <% group.items.each do |item| %>
+      <%= render "./nav/#{item.type.to_s}", group: item %>
+    <% end %> 
+  </ul>
 <% end %>

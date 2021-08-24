@@ -1,6 +1,6 @@
 import morph from "./utils/morph";
 
-export default function nav() {
+export default function () {
   return {
     clearFilter() {
       this.$store.nav.filter = "";
@@ -18,7 +18,16 @@ export default function nav() {
       morph(menu, event.detail.doc.querySelector("#menu"));
       Promise.resolve().then(() => {
         this.$refs.menu.style.height = "auto";
+        this.$dispatch("menu:updated");
       });
+      // menu.innerHTML = event.detail.doc.querySelector("#menu").innerHTML;
+    },
+    // initMenu() {
+    //   console.log("init");
+    // },
+    navigate($event) {
+      history.pushState({}, null, $event.currentTarget.href);
+      this.$dispatch("popstate");
     },
   };
 }
